@@ -505,6 +505,78 @@ class APIServer(TikTok):
             extract: LiveSearch, token: str = Depends(token_dependency)
         ):
             return await self.handle_search(extract)
+        
+
+        @self.server.post(
+            "/douyin/getDownloadUrlByShareText",
+            summary=_("获取分享文本中的下载链接"),
+            description=(
+                dedent("""
+                **参数**:
+
+                - **text**: 包含分享链接的字符串；必需参数
+                - **proxy**: 代理；可选参数
+                """
+                )
+            ),
+            tags=[_("抖音")],
+            response_model=DataResponse,
+        )
+        async def handle_getDownloadUrlByShareText(
+            extract: ShortUrl, token: str = Depends(token_dependency)
+        ):
+            """
+            流程：
+            1. 通过分享文本调用重定向接口获取完整 URL（与 /douyin/share 相同的重定向逻辑）
+            2. 从完整 URL 中提取 detail_id（如 /video/<id>）
+            3. 调用现有的 detail 处理逻辑获取作品数据，并返回其中的 downloads 字段
+            """
+            # 1) 获取重定向后的完整链接
+            if not (url := await self.handle_redirect(extract.text, extract.proxy)):
+                return DataResponse(
+                    message=_("请求链接失败！"),
+                    data=None,
+                    params=extract.model_dump(),
+                )
+
+            # 2) 从 url 中提取 detail_id，例如: https://www.douyin.com/video/7554425090865433915?...
+            import re
+
+            m = re.search(r"/video/(\d+)", url)
+            if not m:
+                # 无法解析到 id，返回包含原始 url 以便排查
+                return DataResponse(
+                    message=_("未能从重定向链接中解析到作品 ID！"),
+                    data={"url": url},
+                    params=extract.model_dump(),
+                )
+
+            detail_id = m.group(1)
+
+            # 3) 调用已有的 handle_detail 获取作品数据
+            detail_model = Detail(detail_id=detail_id)
+            data_resp = await self.handle_detail(detail_model, False)
+
+            # data_resp 应为 DataResponse
+            downloads = None
+            if isinstance(data_resp, DataResponse) and data_resp.data:
+                # data 可能是 dict 或 list[dict]
+                d = data_resp.data[0] if isinstance(data_resp.data, list) and data_resp.data else data_resp.data
+                if isinstance(d, dict):
+                    downloads = d.get("downloads")
+
+            if downloads:
+                return DataResponse(
+                    message=_("获取下载链接成功！"),
+                    data={"downloads": downloads},
+                    params=extract.model_dump(),
+                )
+
+            return DataResponse(
+                message=_("未找到 downloads 字段或获取失败！"),
+                data=None,
+                params=extract.model_dump(),
+            )
 
         @self.server.post(
             "/tiktok/share",
