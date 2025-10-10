@@ -566,18 +566,16 @@ class APIServer(TikTok):
                     downloads = d.get("downloads")
 
             if downloads:
-                return downloads
-                # return DataResponse(
-                #     message=_("获取下载链接成功！"),
-                #     data={"downloads": downloads},
-                #     params=extract.model_dump(),
-                # )
-            return None
-            # return DataResponse(
-            #     message=_("未找到 downloads 字段或获取失败！"),
-            #     data=None,
-            #     params=extract.model_dump(),
-            # )
+                return DataResponse(
+                    message=_("获取下载链接成功！"),
+                    data=downloads,
+                    params=extract.model_dump(),
+                )
+            return DataResponse(
+                message=_("未找到 downloads 字段或获取失败！"),
+                data=None,
+                params=extract.model_dump(),
+            )
 
         @self.server.post(
             "/tiktok/share",
