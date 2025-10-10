@@ -568,7 +568,7 @@ class APIServer(TikTok):
             if downloads:
                 return DataResponse(
                     message=_("获取下载链接成功！"),
-                    data=downloads,
+                    data={"downloads": downloads},
                     params=extract.model_dump(),
                 )
             return DataResponse(
