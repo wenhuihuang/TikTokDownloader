@@ -563,32 +563,40 @@ class APIServer(TikTok):
                 # data 可能是 dict 或 list[dict]
                 d = data_resp.data[0] if isinstance(data_resp.data, list) and data_resp.data else data_resp.data
                 if isinstance(d, dict):
-                    # 遍历 data.video.bit_rate 数组，筛选 gear_name 以 "normal_" 开头的元素
+                    # 当 source=True 时，返回的是原始响应数据
+                    # 遍历原始数据中的 video.bit_rate 数组，筛选 gear_name 以 "normal_" 开头的元素
                     downloads = []
-                    video_data = d.get("data", {})
-                    if isinstance(video_data, dict):
-                        video = video_data.get("video", {})
-                        if isinstance(video, dict):
-                            bit_rate = video.get("bit_rate", [])
-                            if isinstance(bit_rate, list):
-                                for item in bit_rate:
-                                    if isinstance(item, dict):
-                                        gear_name = item.get("gear_name", "")
-                                        if gear_name.startswith("normal_"):
-                                            # 提取 gear_name 下划线分割的第二个部分
-                                            parts = gear_name.split("_")
-                                            name = parts[1] if len(parts) > 1 else ""
-                                            
-                                            # 获取 play_addr.url_list 的第三个元素
-                                            play_addr = item.get("play_addr", {})
-                                            if isinstance(play_addr, dict):
-                                                url_list = play_addr.get("url_list", [])
-                                                if isinstance(url_list, list) and len(url_list) >= 3:
-                                                    value = url_list[2]
-                                                    downloads.append({
-                                                        "name": name,
-                                                        "value": value
-                                                    })
+                    
+                    # 尝试多种可能的数据结构路径
+                    # 1. 直接从 d 访问 video
+                    video = d.get("video", {})
+                    
+                    # 2. 如果没有找到，尝试从 aweme_detail 访问
+                    if not video:
+                        aweme_detail = d.get("aweme_detail", {})
+                        video = aweme_detail.get("video", {})
+                    
+                    if isinstance(video, dict):
+                        bit_rate = video.get("bit_rate", [])
+                        if isinstance(bit_rate, list):
+                            for item in bit_rate:
+                                if isinstance(item, dict):
+                                    gear_name = item.get("gear_name", "")
+                                    if gear_name.startswith("normal_"):
+                                        # 提取 gear_name 下划线分割的第二个部分
+                                        parts = gear_name.split("_")
+                                        name = parts[1] if len(parts) > 1 else ""
+                                        
+                                        # 获取 play_addr.url_list 的第三个元素
+                                        play_addr = item.get("play_addr", {})
+                                        if isinstance(play_addr, dict):
+                                            url_list = play_addr.get("url_list", [])
+                                            if isinstance(url_list, list) and len(url_list) >= 3:
+                                                value = url_list[2]
+                                                downloads.append({
+                                                    "name": name,
+                                                    "value": value
+                                                })
 
             if downloads:
                 return DataResponse(
