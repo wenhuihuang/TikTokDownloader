@@ -582,7 +582,8 @@ class APIServer(TikTok):
                             for item in bit_rate:
                                 if isinstance(item, dict):
                                     gear_name = item.get("gear_name", "")
-                                    if gear_name.startswith("normal_"):
+                                    format_type = item.get("format", "")
+                                    if gear_name.startswith("normal_") and format_type == "mp4":
                                         # 提取 gear_name 下划线分割的第二个部分
                                         parts = gear_name.split("_")
                                         name = parts[1] if len(parts) > 1 else ""
@@ -591,11 +592,15 @@ class APIServer(TikTok):
                                         play_addr = item.get("play_addr", {})
                                         if isinstance(play_addr, dict):
                                             url_list = play_addr.get("url_list", [])
+                                            data_size = item.get("data_size", 0)
                                             if isinstance(url_list, list) and len(url_list) >= 3:
                                                 value = url_list[2]
+                                                # 将 data_size 从字节转换为 MB
+                                                data_size_mb = round(data_size / (1024 * 1024), 2) if data_size else 0
                                                 downloads.append({
                                                     "name": name,
-                                                    "value": value
+                                                    "value": value,
+                                                    "data_size": data_size_mb
                                                 })
 
             if downloads:
