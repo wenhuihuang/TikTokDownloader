@@ -592,7 +592,7 @@ class APIServer(TikTok):
                                         play_addr = item.get("play_addr", {})
                                         if isinstance(play_addr, dict):
                                             url_list = play_addr.get("url_list", [])
-                                            data_size = item.get("data_size", 0)
+                                            data_size = play_addr.get("data_size", 0)
                                             if isinstance(url_list, list) and len(url_list) >= 3:
                                                 value = url_list[2]
                                                 # 将 data_size 从字节转换为 MB
