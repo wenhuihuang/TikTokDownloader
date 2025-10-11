@@ -554,7 +554,7 @@ class APIServer(TikTok):
             detail_id = m.group(1)
 
             # 3) 调用已有的 handle_detail 获取作品数据
-            detail_model = Detail(detail_id=detail_id)
+            detail_model = Detail(detail_id=detail_id, source=True)
             data_resp = await self.handle_detail(detail_model, False)
 
             # data_resp 应为 DataResponse
