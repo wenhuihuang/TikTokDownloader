@@ -597,10 +597,13 @@ class APIServer(TikTok):
                                                 value = url_list[2]
                                                 # 将 data_size 从字节转换为 MB
                                                 data_size_mb = round(data_size / (1024 * 1024), 2) if data_size else 0
+                                                # downloads.append({
+                                                #     "name": name,
+                                                #     "value": value,
+                                                #     "data_size": data_size_mb
+                                                # }) 
                                                 downloads.append({
-                                                    "name": name,
-                                                    "value": value,
-                                                    "data_size": data_size_mb
+                                                    f"{name}P_{data_size_mb}MB": value
                                                 })
 
             if downloads:
