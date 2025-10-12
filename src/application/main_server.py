@@ -565,7 +565,7 @@ class APIServer(TikTok):
                 if isinstance(d, dict):
                     # 当 source=True 时，返回的是原始响应数据
                     # 遍历原始数据中的 video.bit_rate 数组，筛选 gear_name 以 "normal_" 开头的元素
-                    downloads = []
+                    downloads = {}
                     
                     # 尝试多种可能的数据结构路径
                     # 1. 直接从 d 访问 video
@@ -602,9 +602,7 @@ class APIServer(TikTok):
                                                 #     "value": value,
                                                 #     "data_size": data_size_mb
                                                 # }) 
-                                                downloads.append({
-                                                    f"{name}P_{data_size_mb}MB": value
-                                                })
+                                                downloads[f"清晰度：{name}P，大小：{data_size_mb}MB"] = value
 
             if downloads:
                 return DataResponse(
