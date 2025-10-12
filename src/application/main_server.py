@@ -603,7 +603,7 @@ class APIServer(TikTok):
                                                 #     "data_size": data_size_mb
                                                 # }) 
                                                 downloads.append({
-                                                    f"{name}P_{data_size_mb}MB": value
+                                                    f"清晰度：{name}P，大小：{data_size_mb}MB": value
                                                 })
 
             if downloads:
