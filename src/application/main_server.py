@@ -102,7 +102,7 @@ class APIServer(TikTok):
 
     def setup_routes(self):
         @self.server.get(
-            "/",
+            "/api/",
             summary=_("访问项目 GitHub 仓库"),
             description=_("重定向至项目 GitHub 仓库主页"),
             tags=[_("项目")],
@@ -111,7 +111,7 @@ class APIServer(TikTok):
             return RedirectResponse(url=REPOSITORY)
 
         @self.server.get(
-            "/token",
+            "/api/token",
             summary=_("测试令牌有效性"),
             description=_(
                 dedent("""
@@ -131,7 +131,7 @@ class APIServer(TikTok):
             )
 
         @self.server.post(
-            "/settings",
+            "/api/settings",
             summary=_("更新项目全局配置"),
             description=_(
                 dedent("""
@@ -152,7 +152,7 @@ class APIServer(TikTok):
             return Settings(**self.parameter.get_settings_data())
 
         @self.server.get(
-            "/settings",
+            "/api/settings",
             summary=_("获取项目全局配置"),
             description=_("返回项目全部配置参数"),
             tags=[_("配置")],
@@ -162,7 +162,7 @@ class APIServer(TikTok):
             return Settings(**self.parameter.get_settings_data())
 
         @self.server.post(
-            "/douyin/share",
+            "/api/douyin/share",
             summary=_("获取分享链接重定向的完整链接"),
             description=_(
                 dedent("""
@@ -191,7 +191,7 @@ class APIServer(TikTok):
             )
 
         @self.server.post(
-            "/douyin/detail",
+            "/api/douyin/detail",
             summary=_("获取单个作品数据"),
             description=_(
                 dedent("""
@@ -212,7 +212,7 @@ class APIServer(TikTok):
             return await self.handle_detail(extract, False)
 
         @self.server.post(
-            "/douyin/account",
+            "/api/douyin/account",
             summary=_("获取账号作品数据"),
             description=_(
                 dedent("""
@@ -239,7 +239,7 @@ class APIServer(TikTok):
             return await self.handle_account(extract, False)
 
         @self.server.post(
-            "/douyin/mix",
+            "/api/douyin/mix",
             summary=_("获取合集作品数据"),
             description=_(
                 dedent("""
@@ -284,7 +284,7 @@ class APIServer(TikTok):
             return self.failed_response(extract)
 
         @self.server.post(
-            "/douyin/live",
+            "/api/douyin/live",
             summary=_("获取直播数据"),
             description=_(
                 dedent("""
@@ -322,7 +322,7 @@ class APIServer(TikTok):
             return self.failed_response(extract)
 
         @self.server.post(
-            "/douyin/comment",
+            "/api/douyin/comment",
             summary=_("获取作品评论数据"),
             description=_(
                 dedent("""
@@ -360,7 +360,7 @@ class APIServer(TikTok):
             return self.failed_response(extract)
 
         @self.server.post(
-            "/douyin/reply",
+            "/api/douyin/reply",
             summary=_("获取评论回复数据"),
             description=_(
                 dedent("""
@@ -394,7 +394,7 @@ class APIServer(TikTok):
             return self.failed_response(extract)
 
         @self.server.post(
-            "/douyin/search/general",
+            "/api/douyin/search/general",
             summary=_("获取综合搜索数据"),
             description=_(
                 dedent("""
@@ -425,7 +425,7 @@ class APIServer(TikTok):
             return await self.handle_search(extract)
 
         @self.server.post(
-            "/douyin/search/video",
+            "/api/douyin/search/video",
             summary=_("获取视频搜索数据"),
             description=_(
                 dedent("""
@@ -455,7 +455,7 @@ class APIServer(TikTok):
             return await self.handle_search(extract)
 
         @self.server.post(
-            "/douyin/search/user",
+            "/api/douyin/search/user",
             summary=_("获取用户搜索数据"),
             description=_(
                 dedent("""
@@ -483,7 +483,7 @@ class APIServer(TikTok):
             return await self.handle_search(extract)
 
         @self.server.post(
-            "/douyin/search/live",
+            "/api/douyin/search/live",
             summary=_("获取直播搜索数据"),
             description=_(
                 dedent("""
@@ -508,7 +508,7 @@ class APIServer(TikTok):
         
 
         @self.server.post(
-            "/douyin/getDownloadUrlByShareText",
+            "/api/douyin/getDownloadUrlByShareText",
             summary=_("获取分享文本中的下载链接"),
             description=(
                 dedent("""
@@ -617,7 +617,7 @@ class APIServer(TikTok):
             )
 
         @self.server.post(
-            "/tiktok/share",
+            "/api/tiktok/share",
             summary=_("获取分享链接重定向的完整链接"),
             description=_(
                 dedent("""
@@ -646,7 +646,7 @@ class APIServer(TikTok):
             )
 
         @self.server.post(
-            "/tiktok/detail",
+            "/api/tiktok/detail",
             summary=_("获取单个作品数据"),
             description=_(
                 dedent("""
@@ -667,7 +667,7 @@ class APIServer(TikTok):
             return await self.handle_detail(extract, True)
 
         @self.server.post(
-            "/tiktok/account",
+            "/api/tiktok/account",
             summary=_("获取账号作品数据"),
             description=_(
                 dedent("""
@@ -694,7 +694,7 @@ class APIServer(TikTok):
             return await self.handle_account(extract, True)
 
         @self.server.post(
-            "/tiktok/mix",
+            "/api/tiktok/mix",
             summary=_("获取合辑作品数据"),
             description=_(
                 dedent("""
@@ -728,7 +728,7 @@ class APIServer(TikTok):
             return self.failed_response(extract)
 
         @self.server.post(
-            "/tiktok/live",
+            "/api/tiktok/live",
             summary=_("获取直播数据"),
             description=_(
                 dedent("""
