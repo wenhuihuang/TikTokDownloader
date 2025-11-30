@@ -686,32 +686,27 @@ class APIServer(TikTok):
                         video = aweme_detail.get("video", {})
                     
                     if isinstance(video, dict):
-                        bit_rate = video.get("bit_rate", [])
+                        bit_rate = video.get("bitrateInfo", [])
                         if isinstance(bit_rate, list):
                             for item in bit_rate:
                                 if isinstance(item, dict):
-                                    gear_name = item.get("gear_name", "")
-                                    format_type = item.get("format", "")
-                                    if gear_name.startswith("normal_") and format_type == "mp4":
-                                        # 提取 gear_name 下划线分割的第二个部分
-                                        parts = gear_name.split("_")
-                                        name = parts[1] if len(parts) > 1 else ""
-                                        
-                                        # 获取 play_addr.url_list 的第三个元素
-                                        play_addr = item.get("play_addr", {})
-                                        if isinstance(play_addr, dict):
-                                            url_list = play_addr.get("url_list", [])
-                                            data_size = play_addr.get("data_size", 0)
-                                            if isinstance(url_list, list) and len(url_list) >= 3:
-                                                value = url_list[2]
-                                                # 将 data_size 从字节转换为 MB
-                                                data_size_mb = round(data_size / (1024 * 1024), 2) if data_size else 0
-                                                # downloads.append({
-                                                #     "name": name,
-                                                #     "value": value,
-                                                #     "data_size": data_size_mb
-                                                # }) 
-                                                downloads[f"清晰度：{name}P，大小：{data_size_mb}MB"] = value
+                                    gear_name = item.get("GearName", "")
+                                    
+                                    # 获取 play_addr.url_list 的第三个元素
+                                    play_addr = item.get("PlayAddr", {})
+                                    if isinstance(play_addr, dict):
+                                        url_list = play_addr.get("UrlList", [])
+                                        data_size = play_addr.get("DataSize", 0)
+                                        if isinstance(url_list, list) and len(url_list) >= 3:
+                                            value = url_list[2]
+                                            # 将 data_size 从字节转换为 MB
+                                            data_size_mb = round(data_size / (1024 * 1024), 2) if data_size else 0
+                                            # downloads.append({
+                                            #     "name": name,
+                                            #     "value": value,
+                                            #     "data_size": data_size_mb
+                                            # }) 
+                                            downloads[f"{gear_name}，size：{data_size_mb}MB"] = value
 
             if downloads:
                 return DataResponse(
