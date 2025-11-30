@@ -506,7 +506,7 @@ class APIServer(TikTok):
         ):
             return await self.handle_search(extract)
         
-
+# 获取抖音下载链接接口
         @self.server.post(
             "/api/douyin/getDownloadUrlByShareText",
             summary=_("获取分享文本中的下载链接"),
@@ -556,6 +556,115 @@ class APIServer(TikTok):
             # 3) 调用已有的 handle_detail 获取作品数据
             detail_model = Detail(detail_id=detail_id, source=True)
             data_resp = await self.handle_detail(detail_model, False)
+
+            # data_resp 应为 DataResponse
+            downloads = None
+            if isinstance(data_resp, DataResponse) and data_resp.data:
+                # data 可能是 dict 或 list[dict]
+                d = data_resp.data[0] if isinstance(data_resp.data, list) and data_resp.data else data_resp.data
+                if isinstance(d, dict):
+                    # 当 source=True 时，返回的是原始响应数据
+                    # 遍历原始数据中的 video.bit_rate 数组，筛选 gear_name 以 "normal_" 开头的元素
+                    downloads = {}
+                    
+                    # 尝试多种可能的数据结构路径
+                    # 1. 直接从 d 访问 video
+                    video = d.get("video", {})
+                    
+                    # 2. 如果没有找到，尝试从 aweme_detail 访问
+                    if not video:
+                        aweme_detail = d.get("aweme_detail", {})
+                        video = aweme_detail.get("video", {})
+                    
+                    if isinstance(video, dict):
+                        bit_rate = video.get("bit_rate", [])
+                        if isinstance(bit_rate, list):
+                            for item in bit_rate:
+                                if isinstance(item, dict):
+                                    gear_name = item.get("gear_name", "")
+                                    format_type = item.get("format", "")
+                                    if gear_name.startswith("normal_") and format_type == "mp4":
+                                        # 提取 gear_name 下划线分割的第二个部分
+                                        parts = gear_name.split("_")
+                                        name = parts[1] if len(parts) > 1 else ""
+                                        
+                                        # 获取 play_addr.url_list 的第三个元素
+                                        play_addr = item.get("play_addr", {})
+                                        if isinstance(play_addr, dict):
+                                            url_list = play_addr.get("url_list", [])
+                                            data_size = play_addr.get("data_size", 0)
+                                            if isinstance(url_list, list) and len(url_list) >= 3:
+                                                value = url_list[2]
+                                                # 将 data_size 从字节转换为 MB
+                                                data_size_mb = round(data_size / (1024 * 1024), 2) if data_size else 0
+                                                # downloads.append({
+                                                #     "name": name,
+                                                #     "value": value,
+                                                #     "data_size": data_size_mb
+                                                # }) 
+                                                downloads[f"清晰度：{name}P，大小：{data_size_mb}MB"] = value
+
+            if downloads:
+                return DataResponse(
+                    message=_("获取下载链接成功！"),
+                    data={"downloads": downloads},
+                    params=extract.model_dump(),
+                )
+            return DataResponse(
+                message=_("未找到 downloads 字段或获取失败！"),
+                data=None,
+                params=extract.model_dump(),
+            )
+# 获取抖音下载链接接口
+        @self.server.post(
+            "/api/douyin/getTikTokDownloadUrlByShareText",
+            summary=_("获取分享文本中的下载链接"),
+            description=(
+                dedent("""
+                **参数**:
+
+                - **text**: 包含分享链接的字符串；必需参数
+                - **proxy**: 代理；可选参数
+                """
+                )
+            ),
+            tags=[_("TikTok")],
+            response_model=DataResponse,
+        )
+        async def handle_getTikTokDownloadUrlByShareText(
+            extract: ShortUrl, token: str = Depends(token_dependency)
+        ):
+            """
+            流程：
+            1. 通过分享文本调用重定向接口获取完整 URL（与 /douyin/share 相同的重定向逻辑）
+            2. 从完整 URL 中提取 detail_id（如 /video/<id>）
+            3. 调用现有的 detail 处理逻辑获取作品数据，并返回其中的 downloads 字段
+            """
+            # 1) 获取重定向后的完整链接
+            if not (url := await self.handle_redirect_tiktok(extract.text, extract.proxy)):
+                return DataResponse(
+                    message=_("请求链接失败！"),
+                    data=None,
+                    params=extract.model_dump(),
+                )
+
+            # 2) 从 url 中提取 detail_id，例如: https://www.douyin.com/video/7554425090865433915?...
+            import re
+
+            m = re.search(r"/video/(\d+)", url)
+            if not m:
+                # 无法解析到 id，返回包含原始 url 以便排查
+                return DataResponse(
+                    message=_("未能从重定向链接中解析到作品 ID！"),
+                    data={"url": url},
+                    params=extract.model_dump(),
+                )
+
+            detail_id = m.group(1)
+
+            # 3) 调用已有的 handle_detail 获取作品数据
+            detail_model = Detail(detail_id=detail_id, source=True)
+            data_resp = await self.handle_detail_tiktok(detail_model, False)
 
             # data_resp 应为 DataResponse
             downloads = None
